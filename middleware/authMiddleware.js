@@ -15,7 +15,17 @@ const isAuthenticated = (req, res, next) => {
   if (req.isAuthenticated()) {
     next();
   } else {
-    res.redirect('/login');
+    // For API requests, return 401 instead of redirecting
+    // This prevents HTTPS redirect loops on localhost
+    if (req.path.startsWith('/api/')) {
+      res.status(401).json({
+        success: false,
+        message: 'Authentication required'
+      });
+    } else {
+      // For page requests, redirect to login
+      res.redirect('/login');
+    }
   }
 };
 

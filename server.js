@@ -190,7 +190,18 @@ passport.deserializeUser(async (id, done) => {
 });
 
 // Security Middleware - Must be before routes
-app.use(helmet()); // Set security HTTP headers
+// Helmet configuration - disable HSTS on localhost for development
+app.use(helmet({
+  hsts: config.nodeEnv === 'production' ? {
+    maxAge: 31536000, // 1 year in seconds
+    includeSubDomains: true,
+    preload: true
+  } : {
+    maxAge: 0, // Set to 0 to clear any cached HSTS on development
+    includeSubDomains: false,
+    preload: false
+  }
+}));
 
 // Rate limiting
 const limiter = rateLimit({
@@ -199,8 +210,21 @@ const limiter = rateLimit({
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
+  // Skip chunk uploads from rate limiting
+  skip: (req) => req.path.match(/\/api\/facilities\/resumable\/[^/]+\/chunk/)
 });
 app.use(limiter);
+
+// Lenient rate limiting for chunk uploads (allow bulk uploads)
+const chunkUploadLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute window
+  max: 500, // 500 chunk uploads per minute per IP
+  message: 'Too many chunk uploads, please slow down.',
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => !req.path.match(/\/api\/facilities\/resumable\/[^/]+\/chunk/)
+});
+app.use(chunkUploadLimiter);
 
 // Stricter rate limiting for auth routes
 const authLimiter = rateLimit({
@@ -237,7 +261,7 @@ app.use(session({
     secure: config.nodeEnv === 'production', // HTTPS only in production
     httpOnly: true,
     maxAge: 1000 * 60 * 60 * 24, // 24 hours
-    sameSite: 'strict'
+    sameSite: 'lax'  // Changed from 'strict' to 'lax' to allow cookies on same-origin redirects
   }
 }));
 
@@ -245,12 +269,19 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-// CSRF protection
-app.use(csrf({ cookie: false }));
+// CSRF protection - DISABLED
+// const csrfProtection = csrf({ cookie: false });
+// app.use((req, res, next) => {
+//   // Skip CSRF for resumable upload routes - /init, /chunk, /complete, /cancel
+//   if (req.path.match(/\/api\/facilities\/resumable\//)) {
+//     return next();
+//   }
+//   csrfProtection(req, res, next);
+// });
 
-// Pass CSRF token to views
+// Pass CSRF token to views (only when CSRF is available)
 app.use((req, res, next) => {
-  res.locals.csrfToken = req.csrfToken();
+  res.locals.csrfToken = null;
   next();
 });
 

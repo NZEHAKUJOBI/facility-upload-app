@@ -147,6 +147,41 @@ h1 {
     max-width: 600px;
 }
 
+.upload-method-selector {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.method-btn {
+    flex: 1;
+    padding: 12px 18px;
+    border: 2px solid #e0e6ed;
+    background: white;
+    color: #666;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95em;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.method-btn:hover {
+    border-color: #667eea;
+    color: #667eea;
+}
+
+.method-btn.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-color: #667eea;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
 .form-group {
     margin-bottom: 22px;
 }
@@ -225,6 +260,39 @@ small {
 
 .btn-submit:active {
     transform: translateY(0);
+}
+
+.btn-cancel {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.85em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+}
+
+.btn-cancel:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(220, 53, 69, 0.4);
+}
+
+.btn-cancel:active {
+    transform: translateY(0);
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 0.95em;
+    gap: 15px;
 }
 
 .message {
@@ -310,14 +378,6 @@ small {
     border-radius: 8px;
     border: 2px solid #ffb74d;
     box-shadow: 0 4px 12px rgba(255, 152, 0, 0.15);
-}
-
-.progress-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-    font-size: 0.95em;
 }
 
 #downloadFileName {

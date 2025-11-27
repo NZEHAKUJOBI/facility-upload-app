@@ -42,7 +42,31 @@ const upload = multer({
   }
 });
 
-// Routes
+// Configure multer for chunk uploads (small pieces)
+const chunkStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, path.join(__dirname, '../uploads'));
+  },
+  filename: (req, file, cb) => {
+    cb(null, `chunk-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
+  }
+});
+
+const uploadChunk = multer({
+  storage: chunkStorage,
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB per chunk
+  }
+});
+
+// Resumable upload routes (must be before generic /:id routes)
+router.post('/resumable/init', facilityController.initializeResumableUpload);
+router.get('/resumable/:uploadId/progress', facilityController.getResumableUploadProgress);
+router.post('/resumable/:uploadId/chunk', uploadChunk.single('chunk'), facilityController.uploadChunk);
+router.post('/resumable/:uploadId/complete', facilityController.completeResumableUpload);
+router.delete('/resumable/:uploadId/cancel', facilityController.cancelResumableUpload);
+
+// Traditional upload routes
 router.post('/upload', upload.single('file'), facilityController.uploadDatabase);
 router.post('/:id/restore-dump', isAdmin, facilityController.restoreDump);
 router.get('/list', facilityController.listFacilities);

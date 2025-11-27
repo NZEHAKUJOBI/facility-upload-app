@@ -3,7 +3,283 @@ const fs = require('fs');
 const path = require('path');
 const pgdumpUtils = require('../utils/pgdumpUtils');
 const { sanitizeInput, validateFacilityCode } = require('../middleware/validationMiddleware');
+const ResumableUploadManager = require('../utils/resumableUpload');
 const MAX_FACILITIES = parseInt(process.env.MAX_FACILITIES) || 11;
+
+// Initialize resumable upload session
+exports.initializeResumableUpload = async (req, res) => {
+  try {
+    const { fileName, fileSize, fileHash } = req.body;
+
+    // Validate inputs
+    if (!fileName || !fileSize || !fileHash) {
+      return res.status(400).json({
+        success: false,
+        message: 'fileName, fileSize, and fileHash are required'
+      });
+    }
+
+    // Generate upload ID and initialize session
+    const uploadManager = new ResumableUploadManager();
+    const uploadId = uploadManager.generateUploadId(fileName, fileSize, fileHash);
+    
+    try {
+      uploadManager.initializeUpload(uploadId, {
+        fileName: sanitizeInput(fileName),
+        fileSize: parseInt(fileSize),
+        fileHash,
+        userId: req.user.id,
+        uploadedAt: new Date().toISOString()
+      });
+
+      res.status(200).json({
+        success: true,
+        uploadId,
+        chunkSize: 5 * 1024 * 1024 // 5MB chunks
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: error.message
+      });
+    }
+  } catch (error) {
+    console.error('Initialize resumable upload error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+// Get upload progress
+exports.getResumableUploadProgress = async (req, res) => {
+  try {
+    const { uploadId } = req.params;
+
+    if (!uploadId) {
+      return res.status(400).json({
+        success: false,
+        message: 'uploadId is required'
+      });
+    }
+
+    const uploadManager = new ResumableUploadManager();
+    const progress = uploadManager.getUploadProgress(uploadId);
+
+    res.status(200).json({
+      success: true,
+      progress
+    });
+  } catch (error) {
+    console.error('Get upload progress error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+// Upload a chunk
+exports.uploadChunk = async (req, res) => {
+  try {
+    const { uploadId, chunkNumber, totalChunks } = req.body;
+    const chunk = req.file;
+
+    // Validate inputs
+    if (!uploadId || chunkNumber === undefined || !chunk) {
+      if (chunk) fs.unlinkSync(chunk.path);
+      return res.status(400).json({
+        success: false,
+        message: 'uploadId, chunkNumber, and chunk file are required'
+      });
+    }
+
+    const uploadManager = new ResumableUploadManager();
+    
+    try {
+      // Read chunk data from uploaded file
+      const chunkData = fs.readFileSync(chunk.path);
+      
+      // Save chunk
+      uploadManager.saveChunk(uploadId, parseInt(chunkNumber), chunkData);
+      
+      // Clean up temporary file
+      fs.unlinkSync(chunk.path);
+
+      // Get current progress
+      const progress = uploadManager.getUploadProgress(uploadId);
+
+      res.status(200).json({
+        success: true,
+        chunkNumber: parseInt(chunkNumber),
+        uploadedChunks: progress.uploadedChunks,
+        totalChunks: progress.totalChunks
+      });
+    } catch (error) {
+      if (chunk && fs.existsSync(chunk.path)) {
+        fs.unlinkSync(chunk.path);
+      }
+      res.status(400).json({
+        success: false,
+        message: error.message
+      });
+    }
+  } catch (error) {
+    console.error('Upload chunk error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+// Complete resumable upload and assemble chunks
+exports.completeResumableUpload = async (req, res) => {
+  try {
+    const { uploadId, facilityName, facilityCode, description } = req.body;
+
+    // Validate inputs
+    if (!uploadId || !facilityName || !facilityCode) {
+      return res.status(400).json({
+        success: false,
+        message: 'uploadId, facilityName, and facilityCode are required'
+      });
+    }
+
+    // Sanitize inputs
+    const sanitizedName = sanitizeInput(facilityName);
+    const sanitizedCode = sanitizeInput(facilityCode);
+    const sanitizedDesc = description ? sanitizeInput(description) : null;
+
+    // Validate facility code
+    const codeValidation = validateFacilityCode(sanitizedCode);
+    if (!codeValidation.valid) {
+      return res.status(400).json({
+        success: false,
+        message: codeValidation.error
+      });
+    }
+
+    const uploadManager = new ResumableUploadManager();
+    
+    try {
+      // Get upload progress to verify all chunks are uploaded
+      const progress = uploadManager.getUploadProgress(uploadId);
+      
+      if (!progress) {
+        return res.status(404).json({
+          success: false,
+          message: 'Upload session not found'
+        });
+      }
+
+      // Check if all chunks are uploaded (uploadedChunks is an array)
+      if (progress.uploadedChunks.length !== progress.totalChunks) {
+        return res.status(400).json({
+          success: false,
+          message: `Upload incomplete. ${progress.uploadedChunks.length}/${progress.totalChunks} chunks uploaded`
+        });
+      }
+
+      // Assemble chunks into final file
+      const finalFileName = sanitizedCode + '_' + Date.now() + '.sql';
+      const uploadsDir = path.join(__dirname, '..', 'uploads');
+      const finalFilePath = path.join(uploadsDir, finalFileName);
+      
+      await uploadManager.assembleChunks(uploadId, finalFilePath);
+
+      // Verify file was created
+      if (!fs.existsSync(finalFilePath)) {
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to assemble uploaded file'
+        });
+      }
+
+      // Store facility record in database
+      const result = await pool.query(
+        `INSERT INTO facilities (facility_name, facility_code, description, file_path, uploaded_at)
+         VALUES ($1, $2, $3, $4, NOW())
+         RETURNING id, facility_name, facility_code, uploaded_at`,
+        [sanitizedName, sanitizedCode, sanitizedDesc, finalFilePath]
+      );
+
+      // Check facility count limit
+      const countResult = await pool.query('SELECT COUNT(*) as count FROM facilities');
+      if (countResult.rows[0].count > MAX_FACILITIES) {
+        // Delete oldest facility if over limit
+        const oldestResult = await pool.query(
+          'SELECT id, file_path FROM facilities ORDER BY uploaded_at ASC LIMIT 1'
+        );
+        if (oldestResult.rows[0]) {
+          const oldFacility = oldestResult.rows[0];
+          if (fs.existsSync(oldFacility.file_path)) {
+            fs.unlinkSync(oldFacility.file_path);
+          }
+          await pool.query('DELETE FROM facilities WHERE id = $1', [oldFacility.id]);
+        }
+      }
+
+      // Clean up upload session
+      uploadManager.cleanupChunks(uploadId);
+
+      res.status(200).json({
+        success: true,
+        message: 'Upload completed successfully',
+        facility: result.rows[0]
+      });
+    } catch (error) {
+      console.error('Error in resumable upload completion:', error);
+      res.status(400).json({
+        success: false,
+        message: error.message
+      });
+    }
+  } catch (error) {
+    console.error('Complete resumable upload error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+// Cancel resumable upload
+exports.cancelResumableUpload = async (req, res) => {
+  try {
+    const { uploadId } = req.params;
+
+    if (!uploadId) {
+      return res.status(400).json({
+        success: false,
+        message: 'uploadId is required'
+      });
+    }
+
+    const uploadManager = new ResumableUploadManager();
+    
+    try {
+      uploadManager.cancelUpload(uploadId);
+      
+      res.status(200).json({
+        success: true,
+        message: 'Upload cancelled successfully'
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: error.message
+      });
+    }
+  } catch (error) {
+    console.error('Cancel resumable upload error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
 
 // Get facility list for dropdown
 exports.getFacilityList = async (req, res) => {
