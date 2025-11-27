@@ -303,6 +303,44 @@ small {
     color: #666;
 }
 
+.download-progress {
+    margin-top: 20px;
+    padding: 20px;
+    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+    border-radius: 8px;
+    border: 2px solid #ffb74d;
+    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.15);
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 0.95em;
+}
+
+#downloadFileName {
+    color: #e65100;
+    font-weight: 600;
+    max-width: 70%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#downloadPercent {
+    color: #e65100;
+    font-weight: 700;
+    font-size: 1.1em;
+}
+
+#downloadSpeed {
+    color: #f57c00;
+    font-size: 0.85em;
+    font-weight: 500;
+}
+
 #progressPercent {
     font-weight: 700;
     color: #667eea;

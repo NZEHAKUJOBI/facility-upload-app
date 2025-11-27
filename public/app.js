@@ -221,20 +221,84 @@ document.addEventListener('DOMContentLoaded', () => {
     // Download database file (admin only)
     window.downloadDatabase = async (id) => {
         try {
-            const response = await fetch(`/api/facilities/download/${id}`);
-            if (response.ok) {
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `database-${id}.sql`;
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                a.remove();
-            } else {
-                showMessage('Failed to download database', 'error');
-            }
+            const downloadProgressDiv = document.getElementById('downloadProgress');
+            const downloadFill = document.getElementById('downloadFill');
+            const downloadPercent = document.getElementById('downloadPercent');
+            const downloadSize = document.getElementById('downloadSize');
+            const downloadSpeed = document.getElementById('downloadSpeed');
+            const downloadFileName = document.getElementById('downloadFileName');
+
+            downloadProgressDiv.style.display = 'block';
+            downloadFill.style.width = '0%';
+            downloadPercent.textContent = '0%';
+            downloadSize.textContent = '';
+            downloadSpeed.textContent = '';
+
+            const xhr = new XMLHttpRequest();
+            let lastTime = Date.now();
+            let lastLoaded = 0;
+
+            // Handle download progress
+            xhr.addEventListener('progress', (e) => {
+                if (e.lengthComputable) {
+                    const percentComplete = Math.round((e.loaded / e.total) * 100);
+                    const totalMB = (e.total / (1024 * 1024)).toFixed(2);
+                    const loadedMB = (e.loaded / (1024 * 1024)).toFixed(2);
+                    
+                    // Calculate speed
+                    const currentTime = Date.now();
+                    const timeDiff = (currentTime - lastTime) / 1000; // seconds
+                    const bytesDiff = e.loaded - lastLoaded;
+                    const speed = (bytesDiff / (1024 * 1024)) / timeDiff; // MB/s
+                    
+                    downloadFill.style.width = percentComplete + '%';
+                    downloadPercent.textContent = percentComplete + '%';
+                    downloadSize.textContent = `${loadedMB}MB / ${totalMB}MB`;
+                    downloadSpeed.textContent = speed.toFixed(2) + ' MB/s';
+                    
+                    lastTime = currentTime;
+                    lastLoaded = e.loaded;
+                }
+            });
+
+            // Handle completion
+            xhr.addEventListener('load', () => {
+                if (xhr.status === 200) {
+                    const blob = new Blob([xhr.response]);
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `database-${id}.sql`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    a.remove();
+                    
+                    setTimeout(() => {
+                        downloadProgressDiv.style.display = 'none';
+                        showMessage('Database downloaded successfully', 'success');
+                    }, 500);
+                } else {
+                    downloadProgressDiv.style.display = 'none';
+                    showMessage('Failed to download database', 'error');
+                }
+            });
+
+            // Handle error
+            xhr.addEventListener('error', () => {
+                downloadProgressDiv.style.display = 'none';
+                showMessage('Download failed - network error', 'error');
+            });
+
+            xhr.addEventListener('abort', () => {
+                downloadProgressDiv.style.display = 'none';
+                showMessage('Download cancelled', 'error');
+            });
+
+            xhr.open('GET', `/api/facilities/download/${id}`, true);
+            xhr.responseType = 'arraybuffer';
+            downloadFileName.textContent = `Downloading database...`;
+            xhr.send();
         } catch (error) {
             showMessage('Error: ' + error.message, 'error');
         }
@@ -244,21 +308,84 @@ document.addEventListener('DOMContentLoaded', () => {
     if (downloadReportBtn) {
         downloadReportBtn.addEventListener('click', async () => {
             try {
-                const response = await fetch('/api/facilities/report/download');
-                if (response.ok) {
-                    const blob = await response.blob();
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `upload-report-${new Date().getTime()}.csv`;
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                    a.remove();
-                    showMessage('Report downloaded successfully', 'success');
-                } else {
-                    showMessage('Failed to download report', 'error');
-                }
+                const downloadProgressDiv = document.getElementById('downloadProgress');
+                const downloadFill = document.getElementById('downloadFill');
+                const downloadPercent = document.getElementById('downloadPercent');
+                const downloadSize = document.getElementById('downloadSize');
+                const downloadSpeed = document.getElementById('downloadSpeed');
+                const downloadFileName = document.getElementById('downloadFileName');
+
+                downloadProgressDiv.style.display = 'block';
+                downloadFill.style.width = '0%';
+                downloadPercent.textContent = '0%';
+                downloadSize.textContent = '';
+                downloadSpeed.textContent = '';
+                downloadFileName.textContent = 'Downloading report...';
+
+                const xhr = new XMLHttpRequest();
+                let lastTime = Date.now();
+                let lastLoaded = 0;
+
+                // Handle download progress
+                xhr.addEventListener('progress', (e) => {
+                    if (e.lengthComputable) {
+                        const percentComplete = Math.round((e.loaded / e.total) * 100);
+                        const totalMB = (e.total / (1024 * 1024)).toFixed(2);
+                        const loadedMB = (e.loaded / (1024 * 1024)).toFixed(2);
+                        
+                        // Calculate speed
+                        const currentTime = Date.now();
+                        const timeDiff = (currentTime - lastTime) / 1000;
+                        const bytesDiff = e.loaded - lastLoaded;
+                        const speed = (bytesDiff / (1024 * 1024)) / timeDiff;
+                        
+                        downloadFill.style.width = percentComplete + '%';
+                        downloadPercent.textContent = percentComplete + '%';
+                        downloadSize.textContent = `${loadedMB}MB / ${totalMB}MB`;
+                        downloadSpeed.textContent = speed.toFixed(2) + ' MB/s';
+                        
+                        lastTime = currentTime;
+                        lastLoaded = e.loaded;
+                    }
+                });
+
+                // Handle completion
+                xhr.addEventListener('load', () => {
+                    if (xhr.status === 200) {
+                        const blob = new Blob([xhr.response], { type: 'text/csv' });
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `upload-report-${new Date().getTime()}.csv`;
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                        a.remove();
+                        
+                        setTimeout(() => {
+                            downloadProgressDiv.style.display = 'none';
+                            showMessage('Report downloaded successfully', 'success');
+                        }, 500);
+                    } else {
+                        downloadProgressDiv.style.display = 'none';
+                        showMessage('Failed to download report', 'error');
+                    }
+                });
+
+                // Handle error
+                xhr.addEventListener('error', () => {
+                    downloadProgressDiv.style.display = 'none';
+                    showMessage('Download failed - network error', 'error');
+                });
+
+                xhr.addEventListener('abort', () => {
+                    downloadProgressDiv.style.display = 'none';
+                    showMessage('Download cancelled', 'error');
+                });
+
+                xhr.open('GET', '/api/facilities/report/download', true);
+                xhr.responseType = 'arraybuffer';
+                xhr.send();
             } catch (error) {
                 showMessage('Error: ' + error.message, 'error');
             }
