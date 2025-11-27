@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facility Database Upload</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div class="navbar">
+        <div class="navbar-brand">Facility Database Upload</div>
+        <div class="navbar-user">
+            <span class="username">Welcome, <%= user.username %></span>
+            <a href="/logout" class="btn-logout">Logout</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1>Facility Database Upload</h1>
+        <p class="subtitle">Upload PostgreSQL database information for up to 11 facilities</p>
+
+        <div class="form-container">
+            <form id="uploadForm" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="facility_name">Facility Name *</label>
+                    <select id="facility_name" name="facility_name" required>
+                        <option value="">-- Loading facilities --</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="facility_code">Facility Code *</label>
+                    <input type="text" id="facility_code" name="facility_code" readonly placeholder="Code will auto-populate">
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" name="description" rows="3" placeholder="Optional description of the facility"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="file">PostgreSQL Dump File *</label>
+                    <input type="file" id="file" name="file" required accept=".dump,.sql,.bak,.backup">
+                    <small>Required: PostgreSQL dump files (DUMP, SQL, BAK, BACKUP)</small>
+                </div>
+
+                <div id="uploadProgress" class="upload-progress" style="display: none;">
+                    <div class="progress-bar">
+                        <div id="progressFill" class="progress-fill"></div>
+                    </div>
+                    <div class="progress-text">
+                        <span id="progressPercent">0%</span>
+                        <span id="progressSize"></span>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit">Upload Facility</button>
+            </form>
+
+            <div id="message" class="message"></div>
+        </div>
+
+        <div class="facilities-container">
+            <h2>Uploaded Facilities</h2>
+            <div id="facilitiesList" class="facilities-list"></div>
+        </div>
+    </div>
+
+    <script src="/app.js"></script>
+</body>
+</html>
