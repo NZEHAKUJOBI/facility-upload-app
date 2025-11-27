@@ -257,7 +257,7 @@
     <div class="container">
         <div class="user-management-header">
             <h2>User Management</h2>
-            <button class="btn-create-user" onclick="openCreateUserModal()">+ Create New User</button>
+            <button id="btnCreateUser" class="btn-create-user">+ Create New User</button>
         </div>
 
         <div class="user-table-container">
@@ -272,9 +272,10 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Create New User</h2>
-                <span class="close" onclick="closeCreateUserModal()">&times;</span>
+                <span class="close" id="closeCreateModal">&times;</span>
             </div>
             <form id="createUserForm">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                 <div class="form-group">
                     <label for="username">Username *</label>
                     <input type="text" id="username" name="username" required>
@@ -282,6 +283,7 @@
                 <div class="form-group">
                     <label for="password">Password *</label>
                     <input type="password" id="password" name="password" required>
+                    <small style="color: #666; margin-top: 5px; display: block;">Example: MyPass123 (8+ chars: uppercase, lowercase, numbers)</small>
                 </div>
                 <div class="form-group">
                     <label for="email">Email</label>
@@ -296,7 +298,7 @@
                 </div>
                 <div class="form-buttons">
                     <button type="submit" class="btn-create">Create User</button>
-                    <button type="button" class="btn-cancel" onclick="closeCreateUserModal()">Cancel</button>
+                    <button type="button" class="btn-cancel" id="btnCancelCreate">Cancel</button>
                 </div>
             </form>
         </div>
@@ -307,194 +309,24 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Reset Password</h2>
-                <span class="close" onclick="closeResetPasswordModal()">&times;</span>
+                <span class="close" id="closeResetModal">&times;</span>
             </div>
             <form id="resetPasswordForm">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                 <input type="hidden" id="resetUserId">
                 <div class="form-group">
                     <label for="newPassword">New Password *</label>
                     <input type="password" id="newPassword" name="newPassword" required>
+                    <small style="color: #666; margin-top: 5px; display: block;">Example: MyPass123 (8+ chars: uppercase, lowercase, numbers)</small>
                 </div>
                 <div class="form-buttons">
                     <button type="submit" class="btn-create">Reset Password</button>
-                    <button type="button" class="btn-cancel" onclick="closeResetPasswordModal()">Cancel</button>
+                    <button type="button" class="btn-cancel" id="btnCancelReset">Cancel</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <script>
-        // Load users on page load
-        document.addEventListener('DOMContentLoaded', loadUsers);
-
-        // Create user form submission
-        document.getElementById('createUserForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            await createUser();
-        });
-
-        // Reset password form submission
-        document.getElementById('resetPasswordForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            await resetPassword();
-        });
-
-        async function loadUsers() {
-            try {
-                const response = await fetch('/api/users');
-                const data = await response.json();
-
-                if (data.success && data.data.length > 0) {
-                    const tableHTML = `
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Username</th>
-                                    <th>Email</th>
-                                    <th>Role</th>
-                                    <th>Created</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${data.data.map(user => `
-                                    <tr>
-                                        <td>${escapeHtml(user.username)}</td>
-                                        <td>${user.email ? escapeHtml(user.email) : 'N/A'}</td>
-                                        <td><span class="role-badge role-${user.role}">${user.role}</span></td>
-                                        <td>${new Date(user.created_at).toLocaleDateString()}</td>
-                                        <td>
-                                            <div class="action-buttons">
-                                                <button class="btn-small btn-reset" onclick="openResetPasswordModal(${user.id}, '${user.username}')">Reset Password</button>
-                                                ${user.role === 'uploader' ? `<button class="btn-small btn-remove" onclick="deleteUser(${user.id}, '${user.username}')">Delete</button>` : ''}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    `;
-                    document.getElementById('usersTableContainer').innerHTML = tableHTML;
-                } else {
-                    document.getElementById('usersTableContainer').innerHTML = '<div class="empty-state">No users found</div>';
-                }
-            } catch (error) {
-                showMessage('Error loading users: ' + error.message, 'error');
-            }
-        }
-
-        async function createUser() {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const email = document.getElementById('email').value;
-            const role = document.getElementById('role').value;
-
-            try {
-                const response = await fetch('/api/users', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password, email: email || null, role })
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    showMessage('User created successfully', 'success');
-                    closeCreateUserModal();
-                    document.getElementById('createUserForm').reset();
-                    loadUsers();
-                } else {
-                    showMessage(data.message || 'Failed to create user', 'error');
-                }
-            } catch (error) {
-                showMessage('Error: ' + error.message, 'error');
-            }
-        }
-
-        async function resetPassword() {
-            const userId = document.getElementById('resetUserId').value;
-            const newPassword = document.getElementById('newPassword').value;
-
-            try {
-                const response = await fetch(`/api/users/${userId}/reset-password`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ newPassword })
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    showMessage('Password reset successfully', 'success');
-                    closeResetPasswordModal();
-                    document.getElementById('resetPasswordForm').reset();
-                    loadUsers();
-                } else {
-                    showMessage(data.message || 'Failed to reset password', 'error');
-                }
-            } catch (error) {
-                showMessage('Error: ' + error.message, 'error');
-            }
-        }
-
-        async function deleteUser(id, username) {
-            if (confirm(`Are you sure you want to delete user "${username}"?`)) {
-                try {
-                    const response = await fetch(`/api/users/${id}`, { method: 'DELETE' });
-                    const data = await response.json();
-
-                    if (response.ok) {
-                        showMessage('User deleted successfully', 'success');
-                        loadUsers();
-                    } else {
-                        showMessage(data.message || 'Failed to delete user', 'error');
-                    }
-                } catch (error) {
-                    showMessage('Error: ' + error.message, 'error');
-                }
-            }
-        }
-
-        function openCreateUserModal() {
-            document.getElementById('createUserModal').style.display = 'block';
-        }
-
-        function closeCreateUserModal() {
-            document.getElementById('createUserModal').style.display = 'none';
-        }
-
-        function openResetPasswordModal(userId, username) {
-            document.getElementById('resetUserId').value = userId;
-            document.getElementById('resetPasswordModal').style.display = 'block';
-        }
-
-        function closeResetPasswordModal() {
-            document.getElementById('resetPasswordModal').style.display = 'none';
-        }
-
-        function showMessage(message, type) {
-            const messageDiv = document.getElementById('message');
-            messageDiv.textContent = message;
-            messageDiv.className = `message ${type}`;
-            setTimeout(() => {
-                messageDiv.className = 'message';
-            }, 5000);
-        }
-
-        function escapeHtml(text) {
-            if (!text) return '';
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        // Close modal when clicking outside
-        window.onclick = function (event) {
-            const createModal = document.getElementById('createUserModal');
-            const resetModal = document.getElementById('resetPasswordModal');
-            if (event.target === createModal) createModal.style.display = 'none';
-            if (event.target === resetModal) resetModal.style.display = 'none';
-        };
-    </script>
+    <script src="/users.js"></script>
 </body>
 </html>

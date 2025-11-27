@@ -5,7 +5,7 @@ exports.getLogin = (req, res) => {
   if (req.isAuthenticated()) {
     res.redirect('/');
   } else {
-    res.render('login');
+    res.render('login', { csrfToken: req.csrfToken() });
   }
 };
 

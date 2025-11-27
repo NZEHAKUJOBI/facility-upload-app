@@ -25,6 +25,7 @@
 
         <div class="form-container">
             <form id="uploadForm" enctype="multipart/form-data">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                 <div class="form-group">
                     <label for="facility_name">Facility Name *</label>
                     <select id="facility_name" name="facility_name" required>
@@ -84,13 +85,7 @@
         </div>
     </div>
 
-    <script>
-        // Embed user data
-        window.userData = {
-            role: '<%= user.role %>',
-            username: '<%= user.username %>'
-        };
-    </script>
+    <div id="userData" data-role="<%= user.role %>" data-username="<%= user.username %>" style="display:none;"></div>
     <script src="/app.js"></script>
 </body>
 </html>

@@ -1,5 +1,11 @@
 const pool = require('../db');
 const bcrypt = require('bcrypt');
+const { 
+  validateUsername, 
+  validateEmail, 
+  validatePassword, 
+  sanitizeInput 
+} = require('../middleware/validationMiddleware');
 
 // Get all users (admin only)
 exports.getAllUsers = async (req, res) => {
@@ -23,7 +29,13 @@ exports.getAllUsers = async (req, res) => {
 // Create new user (admin only)
 exports.createUser = async (req, res) => {
   try {
-    const { username, password, email, role } = req.body;
+    let { username, password, email, role } = req.body;
+
+    // Sanitize inputs
+    username = sanitizeInput(username);
+    password = sanitizeInput(password);
+    email = email ? sanitizeInput(email) : null;
+    role = role ? sanitizeInput(role) : 'uploader';
 
     // Validate required fields
     if (!username || !password) {
@@ -33,9 +45,38 @@ exports.createUser = async (req, res) => {
       });
     }
 
+    // Validate username format
+    const usernameValidation = validateUsername(username);
+    if (!usernameValidation.valid) {
+      return res.status(400).json({
+        success: false,
+        message: usernameValidation.error
+      });
+    }
+
+    // Validate password strength
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.valid) {
+      return res.status(400).json({
+        success: false,
+        message: passwordValidation.error
+      });
+    }
+
+    // Validate email if provided
+    if (email) {
+      const emailValidation = validateEmail(email);
+      if (!emailValidation.valid) {
+        return res.status(400).json({
+          success: false,
+          message: emailValidation.error
+        });
+      }
+    }
+
     // Validate role
     const validRoles = ['admin', 'uploader'];
-    if (role && !validRoles.includes(role)) {
+    if (!validRoles.includes(role)) {
       return res.status(400).json({
         success: false,
         message: 'Invalid role. Must be admin or uploader'
@@ -50,7 +91,7 @@ exports.createUser = async (req, res) => {
       `INSERT INTO users (username, password, email, role, created_at) 
        VALUES ($1, $2, $3, $4, NOW())
        RETURNING id, username, email, role, created_at`,
-      [username, hashedPassword, email || null, role || 'uploader']
+      [username, hashedPassword, email || null, role]
     );
 
     res.status(201).json({
@@ -77,7 +118,22 @@ exports.createUser = async (req, res) => {
 exports.updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const { email, role } = req.body;
+    let { email, role } = req.body;
+
+    // Sanitize inputs
+    email = email ? sanitizeInput(email) : null;
+    role = role ? sanitizeInput(role) : null;
+
+    // Validate email if provided
+    if (email) {
+      const emailValidation = validateEmail(email);
+      if (!emailValidation.valid) {
+        return res.status(400).json({
+          success: false,
+          message: emailValidation.error
+        });
+      }
+    }
 
     // Validate role if provided
     if (role) {
@@ -165,12 +221,26 @@ exports.deleteUser = async (req, res) => {
 exports.resetPassword = async (req, res) => {
   try {
     const { id } = req.params;
-    const { newPassword } = req.body;
+    let { newPassword } = req.body;
+
+    console.log('Reset password request:', { id, newPassword, body: req.body });
+
+    // Sanitize and validate password
+    newPassword = sanitizeInput(newPassword);
 
     if (!newPassword) {
       return res.status(400).json({
         success: false,
         message: 'New password is required'
+      });
+    }
+
+    // Validate password strength
+    const passwordValidation = validatePassword(newPassword);
+    if (!passwordValidation.valid) {
+      return res.status(400).json({
+        success: false,
+        message: passwordValidation.error
       });
     }
 

@@ -1,11 +1,19 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Read user data from data attributes
+    const userDataEl = document.getElementById('userData');
+    const userData = {
+        role: userDataEl ? userDataEl.getAttribute('data-role') : null,
+        username: userDataEl ? userDataEl.getAttribute('data-username') : null
+    };
+    window.userData = userData;
+
     const uploadForm = document.getElementById('uploadForm');
     const messageDiv = document.getElementById('message');
     const facilitiesList = document.getElementById('facilitiesList');
     const facilityNameSelect = document.getElementById('facility_name');
     const facilityCodeInput = document.getElementById('facility_code');
     const downloadReportBtn = document.getElementById('downloadReportBtn');
-    const isAdmin = window.userData && window.userData.role === 'admin';
+    const isAdmin = userData && userData.role === 'admin';
 
     // Load facility list from database
     async function loadFacilityList() {
@@ -57,6 +65,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const xhr = new XMLHttpRequest();
+            
+            // Get CSRF token from form
+            const csrfToken = document.querySelector('input[name="_csrf"]').value;
 
             // Handle upload progress
             xhr.upload.addEventListener('progress', (e) => {
@@ -99,6 +110,8 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             xhr.open('POST', '/api/facilities/upload', true);
+            // Add CSRF token as header for multipart/form-data
+            xhr.setRequestHeader('csrf-token', csrfToken);
             xhr.send(formData);
         } catch (error) {
             uploadProgressDiv.style.display = 'none';
@@ -135,20 +148,50 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="facility-actions">
                             ${isAdmin ? `
                                 ${facility.file_path ? `
-                                    <button class="btn-restore" onclick="restoreDump(${facility.id})">Restore Dump</button>
-                                    <button class="btn-download" onclick="downloadDatabase(${facility.id})">Download</button>
+                                    <button class="btn-restore" data-action="restore" data-facility-id="${facility.id}">Restore Dump</button>
+                                    <button class="btn-download" data-action="download" data-facility-id="${facility.id}">Download</button>
                                 ` : ''}
-                                <button class="btn-delete" onclick="deleteFacility(${facility.id})">Delete</button>
+                                <button class="btn-delete" data-action="delete" data-facility-id="${facility.id}">Delete</button>
                             ` : ''}
                         </div>
                     </div>
                 `).join('');
+                
+                // Attach event listeners to facility action buttons
+                attachFacilityButtonListeners();
             } else {
                 facilitiesList.innerHTML = '<div class="empty-state">No facilities uploaded yet</div>';
             }
         } catch (error) {
             facilitiesList.innerHTML = '<div class="empty-state">Error loading facilities</div>';
         }
+    }
+
+    // Attach event listeners to facility action buttons
+    function attachFacilityButtonListeners() {
+        // Restore dump buttons
+        document.querySelectorAll('button[data-action="restore"]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const facilityId = e.target.getAttribute('data-facility-id');
+                restoreDump(facilityId);
+            });
+        });
+        
+        // Download buttons
+        document.querySelectorAll('button[data-action="download"]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const facilityId = e.target.getAttribute('data-facility-id');
+                downloadDatabase(facilityId);
+            });
+        });
+        
+        // Delete buttons
+        document.querySelectorAll('button[data-action="delete"]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const facilityId = e.target.getAttribute('data-facility-id');
+                deleteFacility(facilityId);
+            });
+        });
     }
 
     // Show message
@@ -161,26 +204,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Delete facility
-    window.deleteFacility = async (id) => {
+    function deleteFacility(id) {
         if (confirm('Are you sure you want to delete this facility?')) {
-            try {
-                const response = await fetch(`/api/facilities/${id}`, {
-                    method: 'DELETE'
-                });
+            (async () => {
+                try {
+                    const csrfToken = document.querySelector('input[name="_csrf"]').value;
+                    const response = await fetch(`/api/facilities/${id}`, {
+                        method: 'DELETE',
+                        headers: { 'csrf-token': csrfToken }
+                    });
 
-                const data = await response.json();
+                    const data = await response.json();
 
-                if (response.ok) {
-                    showMessage(data.message, 'success');
-                    loadFacilities();
-                } else {
-                    showMessage(data.message || 'Delete failed', 'error');
+                    if (response.ok) {
+                        showMessage(data.message, 'success');
+                        loadFacilities();
+                    } else {
+                        showMessage(data.message || 'Delete failed', 'error');
+                    }
+                } catch (error) {
+                    showMessage('Error: ' + error.message, 'error');
                 }
-            } catch (error) {
-                showMessage('Error: ' + error.message, 'error');
-            }
+            })();
         }
-    };
+    }
 
     // Escape HTML to prevent XSS
     function escapeHtml(text) {
@@ -196,36 +243,40 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Restore PostgreSQL dump (admin only)
-    window.restoreDump = async (id) => {
+    function restoreDump(id) {
         if (confirm('View database dump details. Continue?')) {
-            try {
-                const response = await fetch(`/api/facilities/${id}/restore-dump`, {
-                    method: 'POST'
-                });
+            (async () => {
+                try {
+                    const csrfToken = document.querySelector('input[name="_csrf"]').value;
+                    const response = await fetch(`/api/facilities/${id}/restore-dump`, {
+                        method: 'POST',
+                        headers: { 'csrf-token': csrfToken }
+                    });
 
-                const data = await response.json();
+                    const data = await response.json();
 
-                if (response.ok && data.data && data.data.metadata) {
-                    const metadata = data.data.metadata;
-                    const tableList = metadata.tables && metadata.tables.length > 0 
-                        ? metadata.tables.join(', ') 
-                        : 'No tables found';
-                    const dumpDate = metadata.dumpDate || 'Unknown';
-                    const version = metadata.version || 'Unknown';
-                    
-                    const message = `Database Info - Version: ${version}, Dump Date: ${dumpDate}, Tables (${metadata.tables.length}): ${tableList}`;
-                    showMessage(message, 'success');
-                } else {
-                    showMessage(data.message || 'Failed to validate database dump', 'error');
+                    if (response.ok && data.data && data.data.metadata) {
+                        const metadata = data.data.metadata;
+                        const tableList = metadata.tables && metadata.tables.length > 0 
+                            ? metadata.tables.join(', ') 
+                            : 'No tables found';
+                        const dumpDate = metadata.dumpDate || 'Unknown';
+                        const version = metadata.version || 'Unknown';
+                        
+                        const message = `Database Info - Version: ${version}, Dump Date: ${dumpDate}, Tables (${metadata.tables.length}): ${tableList}`;
+                        showMessage(message, 'success');
+                    } else {
+                        showMessage(data.message || 'Failed to validate database dump', 'error');
+                    }
+                } catch (error) {
+                    showMessage('Error: ' + error.message, 'error');
                 }
-            } catch (error) {
-                showMessage('Error: ' + error.message, 'error');
-            }
+            })();
         }
-    };
+    }
 
     // Download database file (admin only)
-    window.downloadDatabase = async (id) => {
+    function downloadDatabase(id) {
         try {
             const downloadProgressDiv = document.getElementById('downloadProgress');
             const downloadFill = document.getElementById('downloadFill');

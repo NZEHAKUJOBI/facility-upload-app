@@ -2,6 +2,7 @@ const pool = require('../db');
 const fs = require('fs');
 const path = require('path');
 const pgdumpUtils = require('../utils/pgdumpUtils');
+const { sanitizeInput, validateFacilityCode } = require('../middleware/validationMiddleware');
 const MAX_FACILITIES = parseInt(process.env.MAX_FACILITIES) || 11;
 
 // Get facility list for dropdown
@@ -24,8 +25,13 @@ exports.getFacilityList = async (req, res) => {
 // Upload database for a facility
 exports.uploadDatabase = async (req, res) => {
   try {
-    const { facility_name, facility_code, description } = req.body;
+    let { facility_name, facility_code, description } = req.body;
     const file = req.file;
+
+    // Sanitize inputs
+    facility_name = sanitizeInput(facility_name);
+    facility_code = sanitizeInput(facility_code);
+    description = description ? sanitizeInput(description) : null;
 
     // Validate required fields
     if (!facility_name || !facility_code) {
@@ -33,6 +39,16 @@ exports.uploadDatabase = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: 'facility_name and facility_code are required'
+      });
+    }
+
+    // Validate facility code format
+    const codeValidation = validateFacilityCode(facility_code);
+    if (!codeValidation.valid) {
+      if (file) fs.unlinkSync(file.path);
+      return res.status(400).json({
+        success: false,
+        message: codeValidation.error
       });
     }
 
@@ -137,7 +153,23 @@ exports.getFacilityById = async (req, res) => {
 exports.updateFacility = async (req, res) => {
   try {
     const { id } = req.params;
-    const { facility_name, facility_code, description } = req.body;
+    let { facility_name, facility_code, description } = req.body;
+
+    // Sanitize inputs
+    facility_name = facility_name ? sanitizeInput(facility_name) : null;
+    facility_code = facility_code ? sanitizeInput(facility_code) : null;
+    description = description ? sanitizeInput(description) : null;
+
+    // Validate facility code if provided
+    if (facility_code) {
+      const codeValidation = validateFacilityCode(facility_code);
+      if (!codeValidation.valid) {
+        return res.status(400).json({
+          success: false,
+          message: codeValidation.error
+        });
+      }
+    }
 
     const result = await pool.query(
       `UPDATE facilities
