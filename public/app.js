@@ -133,11 +133,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                         ` : ''}
                         <div class="facility-actions">
-                            ${facility.file_path ? `
-                                <button class="btn-restore" onclick="restoreDump(${facility.id})">Restore Dump</button>
-                            ` : ''}
                             ${isAdmin ? `
                                 ${facility.file_path ? `
+                                    <button class="btn-restore" onclick="restoreDump(${facility.id})">Restore Dump</button>
                                     <button class="btn-download" onclick="downloadDatabase(${facility.id})">Download</button>
                                 ` : ''}
                                 <button class="btn-delete" onclick="deleteFacility(${facility.id})">Delete</button>
@@ -197,9 +195,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return filePath.split('\\').pop().split('/').pop();
     }
 
-    // Restore PostgreSQL dump
+    // Restore PostgreSQL dump (admin only)
     window.restoreDump = async (id) => {
-        if (confirm('This will restore the database from the dump file. Continue?')) {
+        if (confirm('View database dump details. Continue?')) {
             try {
                 const response = await fetch(`/api/facilities/${id}/restore-dump`, {
                     method: 'POST'
@@ -207,10 +205,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const data = await response.json();
 
-                if (response.ok) {
-                    showMessage(`Database restored successfully! Tables: ${data.data.metadata.tables.length}`, 'success');
+                if (response.ok && data.data && data.data.metadata) {
+                    const metadata = data.data.metadata;
+                    const tableList = metadata.tables && metadata.tables.length > 0 
+                        ? metadata.tables.join(', ') 
+                        : 'No tables found';
+                    const dumpDate = metadata.dumpDate || 'Unknown';
+                    const version = metadata.version || 'Unknown';
+                    
+                    const message = `Database Info - Version: ${version}, Dump Date: ${dumpDate}, Tables (${metadata.tables.length}): ${tableList}`;
+                    showMessage(message, 'success');
                 } else {
-                    showMessage(data.message || 'Restore failed', 'error');
+                    showMessage(data.message || 'Failed to validate database dump', 'error');
                 }
             } catch (error) {
                 showMessage('Error: ' + error.message, 'error');

@@ -44,7 +44,7 @@ const upload = multer({
 
 // Routes
 router.post('/upload', upload.single('file'), facilityController.uploadDatabase);
-router.post('/:id/restore-dump', facilityController.restoreDump);
+router.post('/:id/restore-dump', isAdmin, facilityController.restoreDump);
 router.get('/list', facilityController.listFacilities);
 router.get('/facility-list', facilityController.getFacilityList);
 router.get('/download/:id', isAdmin, facilityController.downloadDatabase);
