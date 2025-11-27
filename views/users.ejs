@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management - Facility Database Upload</title>
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 15px;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: #333;
+            font-size: 1.5em;
+        }
+
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: inherit;
+            font-size: 1em;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #7B2FF7;
+            box-shadow: 0 0 0 3px rgba(123, 47, 247, 0.1);
+        }
+
+        .form-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .form-buttons button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .form-buttons .btn-create {
+            background: linear-gradient(135deg, #7B2FF7 0%, #5B15C7 100%);
+            color: white;
+        }
+
+        .form-buttons .btn-create:hover {
+            box-shadow: 0 4px 12px rgba(123, 47, 247, 0.3);
+        }
+
+        .form-buttons .btn-cancel {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .form-buttons .btn-cancel:hover {
+            background: #e0e0e0;
+        }
+
+        .user-table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        thead {
+            background: linear-gradient(135deg, #7B2FF7 0%, #5B15C7 100%);
+            color: white;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85em;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        tbody tr:hover {
+            background: #fafafa;
+        }
+
+        .role-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .role-admin {
+            background: linear-gradient(135deg, #7B2FF7 0%, #5B15C7 100%);
+            color: white;
+        }
+
+        .role-uploader {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8em;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-reset {
+            background: #ffc107;
+            color: white;
+        }
+
+        .btn-reset:hover {
+            background: #e0a800;
+        }
+
+        .btn-remove {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-remove:hover {
+            background: #da190b;
+        }
+
+        .user-management-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .user-management-header h2 {
+            margin: 0;
+            color: #333;
+        }
+
+        .btn-create-user {
+            background: linear-gradient(135deg, #7B2FF7 0%, #5B15C7 100%);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-create-user:hover {
+            box-shadow: 0 4px 12px rgba(123, 47, 247, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            background: #f9f9f9;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="navbar-brand">Facility Database Upload</div>
+        <div class="navbar-user">
+            <span class="username">Welcome, <%= user.username %> <span class="user-role">(<%= user.role %>)</span></span>
+            <a href="/" class="btn-logout">Back to Facilities</a>
+            <a href="/logout" class="btn-logout">Logout</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="user-management-header">
+            <h2>User Management</h2>
+            <button class="btn-create-user" onclick="openCreateUserModal()">+ Create New User</button>
+        </div>
+
+        <div class="user-table-container">
+            <div id="usersTableContainer"></div>
+        </div>
+
+        <div id="message" class="message"></div>
+    </div>
+
+    <!-- Create User Modal -->
+    <div id="createUserModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create New User</h2>
+                <span class="close" onclick="closeCreateUserModal()">&times;</span>
+            </div>
+            <form id="createUserForm">
+                <div class="form-group">
+                    <label for="username">Username *</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password *</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email">
+                </div>
+                <div class="form-group">
+                    <label for="role">Role *</label>
+                    <select id="role" name="role" required>
+                        <option value="uploader">Uploader</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <div class="form-buttons">
+                    <button type="submit" class="btn-create">Create User</button>
+                    <button type="button" class="btn-cancel" onclick="closeCreateUserModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Reset Password Modal -->
+    <div id="resetPasswordModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Reset Password</h2>
+                <span class="close" onclick="closeResetPasswordModal()">&times;</span>
+            </div>
+            <form id="resetPasswordForm">
+                <input type="hidden" id="resetUserId">
+                <div class="form-group">
+                    <label for="newPassword">New Password *</label>
+                    <input type="password" id="newPassword" name="newPassword" required>
+                </div>
+                <div class="form-buttons">
+                    <button type="submit" class="btn-create">Reset Password</button>
+                    <button type="button" class="btn-cancel" onclick="closeResetPasswordModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Load users on page load
+        document.addEventListener('DOMContentLoaded', loadUsers);
+
+        // Create user form submission
+        document.getElementById('createUserForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await createUser();
+        });
+
+        // Reset password form submission
+        document.getElementById('resetPasswordForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await resetPassword();
+        });
+
+        async function loadUsers() {
+            try {
+                const response = await fetch('/api/users');
+                const data = await response.json();
+
+                if (data.success && data.data.length > 0) {
+                    const tableHTML = `
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Username</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.data.map(user => `
+                                    <tr>
+                                        <td>${escapeHtml(user.username)}</td>
+                                        <td>${user.email ? escapeHtml(user.email) : 'N/A'}</td>
+                                        <td><span class="role-badge role-${user.role}">${user.role}</span></td>
+                                        <td>${new Date(user.created_at).toLocaleDateString()}</td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <button class="btn-small btn-reset" onclick="openResetPasswordModal(${user.id}, '${user.username}')">Reset Password</button>
+                                                ${user.role === 'uploader' ? `<button class="btn-small btn-remove" onclick="deleteUser(${user.id}, '${user.username}')">Delete</button>` : ''}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                    document.getElementById('usersTableContainer').innerHTML = tableHTML;
+                } else {
+                    document.getElementById('usersTableContainer').innerHTML = '<div class="empty-state">No users found</div>';
+                }
+            } catch (error) {
+                showMessage('Error loading users: ' + error.message, 'error');
+            }
+        }
+
+        async function createUser() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const email = document.getElementById('email').value;
+            const role = document.getElementById('role').value;
+
+            try {
+                const response = await fetch('/api/users', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password, email: email || null, role })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage('User created successfully', 'success');
+                    closeCreateUserModal();
+                    document.getElementById('createUserForm').reset();
+                    loadUsers();
+                } else {
+                    showMessage(data.message || 'Failed to create user', 'error');
+                }
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+        }
+
+        async function resetPassword() {
+            const userId = document.getElementById('resetUserId').value;
+            const newPassword = document.getElementById('newPassword').value;
+
+            try {
+                const response = await fetch(`/api/users/${userId}/reset-password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ newPassword })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage('Password reset successfully', 'success');
+                    closeResetPasswordModal();
+                    document.getElementById('resetPasswordForm').reset();
+                    loadUsers();
+                } else {
+                    showMessage(data.message || 'Failed to reset password', 'error');
+                }
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+        }
+
+        async function deleteUser(id, username) {
+            if (confirm(`Are you sure you want to delete user "${username}"?`)) {
+                try {
+                    const response = await fetch(`/api/users/${id}`, { method: 'DELETE' });
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        showMessage('User deleted successfully', 'success');
+                        loadUsers();
+                    } else {
+                        showMessage(data.message || 'Failed to delete user', 'error');
+                    }
+                } catch (error) {
+                    showMessage('Error: ' + error.message, 'error');
+                }
+            }
+        }
+
+        function openCreateUserModal() {
+            document.getElementById('createUserModal').style.display = 'block';
+        }
+
+        function closeCreateUserModal() {
+            document.getElementById('createUserModal').style.display = 'none';
+        }
+
+        function openResetPasswordModal(userId, username) {
+            document.getElementById('resetUserId').value = userId;
+            document.getElementById('resetPasswordModal').style.display = 'block';
+        }
+
+        function closeResetPasswordModal() {
+            document.getElementById('resetPasswordModal').style.display = 'none';
+        }
+
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = message;
+            messageDiv.className = `message ${type}`;
+            setTimeout(() => {
+                messageDiv.className = 'message';
+            }, 5000);
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function (event) {
+            const createModal = document.getElementById('createUserModal');
+            const resetModal = document.getElementById('resetPasswordModal');
+            if (event.target === createModal) createModal.style.display = 'none';
+            if (event.target === resetModal) resetModal.style.display = 'none';
+        };
+    </script>
+</body>
+</html>

@@ -56,6 +56,12 @@ body {
     font-size: 0.95em;
 }
 
+.user-role {
+    color: rgba(123, 47, 247, 0.8);
+    font-weight: 600;
+    font-size: 0.85em;
+}
+
 .btn-logout {
     background: rgba(255, 255, 255, 0.15);
     color: white;
@@ -73,6 +79,28 @@ body {
     background: rgba(255, 255, 255, 0.25);
     border-color: rgba(255, 255, 255, 0.5);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-report {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: white;
+    padding: 8px 18px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9em;
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+}
+
+.btn-report:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+}
+
+.btn-report:active {
+    transform: translateY(0);
 }
 
 .container {
@@ -371,6 +399,31 @@ small {
     text-transform: uppercase;
     letter-spacing: 0.5px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-download {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85em;
+    font-weight: 600;
+    flex: 1;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+    color: white;
+}
+
+.btn-download:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(255, 193, 7, 0.3);
+}
+
+.btn-download:active {
+    transform: translateY(0);
 }
 
 .btn-delete {

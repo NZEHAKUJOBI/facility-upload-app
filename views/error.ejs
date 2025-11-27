@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Denied - Facility Database Upload</title>
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        .error-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 70vh;
+        }
+
+        .error-content {
+            text-align: center;
+            background: white;
+            padding: 50px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+        }
+
+        .error-content h1 {
+            color: #f44336;
+            margin-bottom: 15px;
+            font-size: 2.5em;
+        }
+
+        .error-content p {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .error-content a {
+            display: inline-block;
+            background: linear-gradient(135deg, #7B2FF7 0%, #5B15C7 100%);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .error-content a:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(123, 47, 247, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="navbar-brand">Facility Database Upload</div>
+        <div class="navbar-user">
+            <span class="username">Welcome, <%= user.username %> <span class="user-role">(<%= user.role %>)</span></span>
+            <a href="/" class="btn-logout">Back to Home</a>
+            <a href="/logout" class="btn-logout">Logout</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="error-container">
+            <div class="error-content">
+                <h1>🔒 Access Denied</h1>
+                <p><%= message %></p>
+                <a href="/">Return to Home</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -9,6 +9,9 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const bcrypt = require('bcrypt');
 const facilityRoutes = require('./routes/facilities');
+const loginRoutes = require('./routes/login');
+const userRoutes = require('./routes/users');
+const { isAuthenticated } = require('./middleware/authMiddleware');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -98,24 +101,38 @@ async function initializeDatabase() {
           username VARCHAR(100) NOT NULL UNIQUE,
           password VARCHAR(255) NOT NULL,
           email VARCHAR(100),
+          role VARCHAR(20) DEFAULT 'uploader' CHECK (role IN ('admin', 'uploader')),
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
         CREATE INDEX idx_username ON users(username);
       `);
       console.log('Users table created successfully');
+    } else {
+      // Check if role column exists and add it if not
+      try {
+        await appPool.query('SELECT role FROM users LIMIT 1');
+      } catch (err) {
+        if (err.message.includes('column "role" does not exist')) {
+          console.log('Adding role column to users table...');
+          await appPool.query(`
+            ALTER TABLE users ADD COLUMN role VARCHAR(20) DEFAULT 'uploader' CHECK (role IN ('admin', 'uploader'))
+          `);
+        }
+      }
     }
 
     // Check if users are seeded
     const userCheck = await appPool.query('SELECT COUNT(*) FROM users');
     const userCount = parseInt(userCheck.rows[0].count);
     if (userCount === 0) {
-      console.log('Seeding users data...');
+      console.log('Seeding admin user...');
       const hashedPassword = await bcrypt.hash('admin123', 10);
       await appPool.query(
-        `INSERT INTO users (username, password, email, created_at) VALUES ($1, $2, $3, NOW())`,
-        ['admin', hashedPassword, 'admin@facilities.local']
+        `INSERT INTO users (username, password, email, role, created_at) VALUES ($1, $2, $3, $4, NOW())`,
+        ['admin', hashedPassword, 'admin@facilities.local', 'admin']
       );
-      console.log('Users data seeded successfully with username: admin, password: admin123');
+      console.log('Admin user created successfully with username: admin, password: admin123');
+      console.log('Use the admin account to log in and create additional users via User Management');
     }
 
     await appPool.end();
@@ -181,41 +198,26 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Authentication middleware
-const isAuthenticated = (req, res, next) => {
-  if (req.isAuthenticated()) {
-    next();
-  } else {
-    res.redirect('/login');
-  }
-};
-
 // Routes
-app.get('/login', (req, res) => {
-  if (req.isAuthenticated()) {
-    res.redirect('/');
-  } else {
-    res.render('login');
-  }
-});
-
-app.post('/login', passport.authenticate('local', {
-  successRedirect: '/',
-  failureRedirect: '/login'
-}));
-
-app.get('/logout', (req, res) => {
-  req.logout((err) => {
-    if (err) return res.status(500).json({ success: false, message: err.message });
-    res.redirect('/login');
-  });
-});
+app.use(loginRoutes);
 
 app.use('/api/facilities', isAuthenticated, facilityRoutes);
+app.use('/api/users', isAuthenticated, userRoutes);
 
 // Home route
 app.get('/', isAuthenticated, (req, res) => {
   res.render('index', { user: req.user });
+});
+
+// User management route (admin only)
+app.get('/users', isAuthenticated, (req, res) => {
+  if (req.user.role !== 'admin') {
+    return res.status(403).render('error', { 
+      message: 'Admin access required',
+      user: req.user 
+    });
+  }
+  res.render('users', { user: req.user });
 });
 
 // Error handling middleware

@@ -266,3 +266,85 @@ exports.restoreDump = async (req, res) => {
     });
   }
 };
+
+// Download database file
+exports.downloadDatabase = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Get the facility and its file path
+    const facilityResult = await pool.query('SELECT * FROM facilities WHERE id = $1', [id]);
+
+    if (facilityResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Facility not found'
+      });
+    }
+
+    const facility = facilityResult.rows[0];
+    const filePath = facility.file_path;
+
+    // Check if file exists
+    if (!filePath || !fs.existsSync(filePath)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Database file not found'
+      });
+    }
+
+    // Download the file
+    res.download(filePath, `${facility.facility_code}-dump.sql`, (err) => {
+      if (err) {
+        console.error('Download error:', err);
+        if (!res.headersSent) {
+          res.status(500).json({
+            success: false,
+            message: 'Error downloading file'
+          });
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Download error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+// Generate and download upload report
+exports.downloadReport = async (req, res) => {
+  try {
+    // Get all facilities
+    const result = await pool.query(
+      `SELECT facility_name, facility_code, description, uploaded_at, file_path 
+       FROM facilities 
+       ORDER BY uploaded_at DESC`
+    );
+
+    // Generate CSV report
+    let csv = 'Facility Name,Facility Code,Description,Uploaded Date,File Path\n';
+    
+    result.rows.forEach(facility => {
+      const description = facility.description ? facility.description.replace(/,/g, ';') : '';
+      const fileName = facility.file_path ? facility.file_path.split(/[\\/]/).pop() : 'N/A';
+      const uploadedDate = facility.uploaded_at ? new Date(facility.uploaded_at).toLocaleString() : 'N/A';
+      
+      csv += `"${facility.facility_name}","${facility.facility_code}","${description}","${uploadedDate}","${fileName}"\n`;
+    });
+
+    // Send as file download
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="upload-report-${new Date().getTime()}.csv"`);
+    res.send(csv);
+  } catch (error) {
+    console.error('Report download error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+

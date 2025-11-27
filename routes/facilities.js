@@ -2,6 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const facilityController = require('../controllers/facilityController');
+const { isAdmin } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
@@ -46,8 +47,10 @@ router.post('/upload', upload.single('file'), facilityController.uploadDatabase)
 router.post('/:id/restore-dump', facilityController.restoreDump);
 router.get('/list', facilityController.listFacilities);
 router.get('/facility-list', facilityController.getFacilityList);
+router.get('/download/:id', isAdmin, facilityController.downloadDatabase);
+router.get('/report/download', isAdmin, facilityController.downloadReport);
 router.get('/:id', facilityController.getFacilityById);
 router.put('/:id', facilityController.updateFacility);
-router.delete('/:id', facilityController.deleteFacility);
+router.delete('/:id', isAdmin, facilityController.deleteFacility);
 
 module.exports = router;

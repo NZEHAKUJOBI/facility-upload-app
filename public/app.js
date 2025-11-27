@@ -4,6 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const facilitiesList = document.getElementById('facilitiesList');
     const facilityNameSelect = document.getElementById('facility_name');
     const facilityCodeInput = document.getElementById('facility_code');
+    const downloadReportBtn = document.getElementById('downloadReportBtn');
+    const isAdmin = window.userData && window.userData.role === 'admin';
 
     // Load facility list from database
     async function loadFacilityList() {
@@ -134,7 +136,12 @@ document.addEventListener('DOMContentLoaded', () => {
                             ${facility.file_path ? `
                                 <button class="btn-restore" onclick="restoreDump(${facility.id})">Restore Dump</button>
                             ` : ''}
-                            <button class="btn-delete" onclick="deleteFacility(${facility.id})">Delete</button>
+                            ${isAdmin ? `
+                                ${facility.file_path ? `
+                                    <button class="btn-download" onclick="downloadDatabase(${facility.id})">Download</button>
+                                ` : ''}
+                                <button class="btn-delete" onclick="deleteFacility(${facility.id})">Delete</button>
+                            ` : ''}
                         </div>
                     </div>
                 `).join('');
@@ -210,6 +217,53 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     };
+
+    // Download database file (admin only)
+    window.downloadDatabase = async (id) => {
+        try {
+            const response = await fetch(`/api/facilities/download/${id}`);
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `database-${id}.sql`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                a.remove();
+            } else {
+                showMessage('Failed to download database', 'error');
+            }
+        } catch (error) {
+            showMessage('Error: ' + error.message, 'error');
+        }
+    };
+
+    // Download report (admin only)
+    if (downloadReportBtn) {
+        downloadReportBtn.addEventListener('click', async () => {
+            try {
+                const response = await fetch('/api/facilities/report/download');
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `upload-report-${new Date().getTime()}.csv`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    a.remove();
+                    showMessage('Report downloaded successfully', 'success');
+                } else {
+                    showMessage('Failed to download report', 'error');
+                }
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+        });
+    }
 
     // Load facilities on page load
     loadFacilityList();
