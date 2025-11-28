@@ -211,8 +211,8 @@ app.use(helmet({
       connectSrc: ["'self'", "http:", "https:"]
     }
   },
-  // Remove X-Frame-Options for development
-  frameguard: { action: 'ALLOWALL' }
+  // Allow framing from same origin
+  frameguard: { action: 'SAMEORIGIN' }
 }));
 
 // Rate limiting

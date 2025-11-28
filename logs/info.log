@@ -3812,3 +3812,22 @@
 {"timestamp":"2025-11-28T12:24:13.665Z","level":"INFO","message":"HTTP 200","data":{"method":"GET","path":"/health","statusCode":200,"duration":"1ms","ip":"::1","userId":"anonymous"}}
 {"timestamp":"2025-11-28T12:24:24.868Z","level":"INFO","message":"SIGTERM received, shutting down gracefully"}
 {"timestamp":"2025-11-28T12:24:24.871Z","level":"INFO","message":"Server closed"}
+{"timestamp":"2025-11-28T12:43:27.696Z","level":"INFO","message":"Server running in development mode on port 3000"}
+{"timestamp":"2025-11-28T12:43:27.703Z","level":"INFO","message":"Database: facilities_db at postgres:5432"}
+{"timestamp":"2025-11-28T12:43:30.576Z","level":"INFO","message":"HTTP 302","data":{"method":"GET","path":"/","statusCode":302,"duration":"7ms","ip":"::ffff:172.18.0.1","userId":"anonymous"}}
+{"timestamp":"2025-11-28T12:43:30.589Z","level":"INFO","message":"HTTP 200","data":{"method":"GET","path":"/login","statusCode":200,"duration":"8ms","ip":"::ffff:172.18.0.1","userId":"anonymous"}}
+{"timestamp":"2025-11-28T12:43:30.674Z","level":"INFO","message":"HTTP 304","data":{"method":"GET","path":"/background.jpg","statusCode":304,"duration":"3ms","ip":"::ffff:172.18.0.1","userId":"anonymous"}}
+{"timestamp":"2025-11-28T12:43:31.653Z","level":"INFO","message":"HTTP 304","data":{"method":"GET","path":"/login","statusCode":304,"duration":"2ms","ip":"::ffff:172.18.0.1","userId":"anonymous"}}
+{"timestamp":"2025-11-28T12:43:31.690Z","level":"INFO","message":"HTTP 304","data":{"method":"GET","path":"/background.jpg","statusCode":304,"duration":"1ms","ip":"::ffff:172.18.0.1","userId":"anonymous"}}
+{"timestamp":"2025-11-28T12:43:32.557Z","level":"INFO","message":"HTTP 200","data":{"method":"GET","path":"/health","statusCode":200,"duration":"1ms","ip":"::1","userId":"anonymous"}}
+{"timestamp":"2025-11-28T12:43:44.907Z","level":"INFO","message":"User logged in successfully - admin"}
+{"timestamp":"2025-11-28T12:43:44.911Z","level":"INFO","message":"HTTP 302","data":{"method":"POST","path":"/login","statusCode":302,"duration":"76ms","ip":"::ffff:172.18.0.1","userId":1}}
+{"timestamp":"2025-11-28T12:43:44.920Z","level":"INFO","message":"HTTP 200","data":{"method":"GET","path":"/","statusCode":200,"duration":"4ms","ip":"::ffff:172.18.0.1","userId":1}}
+{"timestamp":"2025-11-28T12:43:44.947Z","level":"INFO","message":"HTTP 304","data":{"method":"GET","path":"/styles.css","statusCode":304,"duration":"1ms","ip":"::ffff:172.18.0.1","userId":"anonymous"}}
+{"timestamp":"2025-11-28T12:43:44.962Z","level":"INFO","message":"HTTP 304","data":{"method":"GET","path":"/resumable-upload.js","statusCode":304,"duration":"5ms","ip":"::ffff:172.18.0.1","userId":"anonymous"}}
+{"timestamp":"2025-11-28T12:43:44.966Z","level":"INFO","message":"HTTP 304","data":{"method":"GET","path":"/upload-methods.js","statusCode":304,"duration":"1ms","ip":"::ffff:172.18.0.1","userId":"anonymous"}}
+{"timestamp":"2025-11-28T12:43:44.968Z","level":"INFO","message":"HTTP 304","data":{"method":"GET","path":"/app.js","statusCode":304,"duration":"2ms","ip":"::ffff:172.18.0.1","userId":"anonymous"}}
+{"timestamp":"2025-11-28T12:43:45.031Z","level":"INFO","message":"HTTP 304","data":{"method":"GET","path":"/background.jpg","statusCode":304,"duration":"2ms","ip":"::ffff:172.18.0.1","userId":"anonymous"}}
+{"timestamp":"2025-11-28T12:43:45.040Z","level":"INFO","message":"HTTP 304","data":{"method":"GET","path":"/list","statusCode":304,"duration":"12ms","ip":"::ffff:172.18.0.1","userId":1}}
+{"timestamp":"2025-11-28T12:43:45.052Z","level":"INFO","message":"HTTP 304","data":{"method":"GET","path":"/facility-list","statusCode":304,"duration":"24ms","ip":"::ffff:172.18.0.1","userId":1}}
+{"timestamp":"2025-11-28T12:44:02.636Z","level":"INFO","message":"HTTP 200","data":{"method":"GET","path":"/health","statusCode":200,"duration":"1ms","ip":"::1","userId":"anonymous"}}

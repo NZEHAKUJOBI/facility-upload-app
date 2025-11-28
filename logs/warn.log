@@ -365,3 +365,7 @@
 {"timestamp":"2025-11-28T10:54:54.542Z","level":"WARN","message":"HTTP 404","data":{"method":"POST","path":"/13/restore-dump","statusCode":404,"duration":"46ms","ip":"::1","userId":1}}
 {"timestamp":"2025-11-28T10:55:00.970Z","level":"WARN","message":"HTTP 404","data":{"method":"DELETE","path":"/13","statusCode":404,"duration":"2ms","ip":"::1","userId":1}}
 {"timestamp":"2025-11-28T10:55:05.342Z","level":"WARN","message":"HTTP 404","data":{"method":"DELETE","path":"/13","statusCode":404,"duration":"3ms","ip":"::1","userId":1}}
+{"timestamp":"2025-11-28T12:43:35.394Z","level":"WARN","message":"404 Not Found - GET /.well-known/appspecific/com.chrome.devtools.json"}
+{"timestamp":"2025-11-28T12:43:35.397Z","level":"WARN","message":"HTTP 404","data":{"method":"GET","path":"/.well-known/appspecific/com.chrome.devtools.json","statusCode":404,"duration":"4ms","ip":"::ffff:172.18.0.1","userId":"anonymous"}}
+{"timestamp":"2025-11-28T12:43:44.952Z","level":"WARN","message":"404 Not Found - GET /.well-known/appspecific/com.chrome.devtools.json"}
+{"timestamp":"2025-11-28T12:43:44.958Z","level":"WARN","message":"HTTP 404","data":{"method":"GET","path":"/.well-known/appspecific/com.chrome.devtools.json","statusCode":404,"duration":"13ms","ip":"::ffff:172.18.0.1","userId":1}}
