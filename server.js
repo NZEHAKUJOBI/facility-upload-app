@@ -190,29 +190,13 @@ passport.deserializeUser(async (id, done) => {
 });
 
 // Security Middleware - Must be before routes
-// Helmet configuration - disable HSTS on localhost for development
+// Helmet configuration - disable all security headers for development/HTTP
 app.use(helmet({
-  hsts: {
-    maxAge: 0, // Disable HSTS completely for development/HTTP
-    includeSubDomains: false,
-    preload: false
-  },
-  // Disable COOP/COEP headers for HTTP (only safe on HTTPS)
-  crossOriginOpenerPolicy: false,
-  crossOriginEmbedderPolicy: false,
-  // Allow form submissions
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", "data:", "https:", "http:"],
-      formAction: ["'self'", "http:", "https:"],
-      connectSrc: ["'self'", "http:", "https:"]
-    }
-  },
-  // Allow framing from same origin
-  frameguard: { action: 'SAMEORIGIN' }
+  hsts: false, // Completely disable HSTS
+  crossOriginOpenerPolicy: false, // Disable COOP
+  crossOriginEmbedderPolicy: false, // Disable COEP
+  contentSecurityPolicy: false, // Disable CSP
+  frameguard: false // Disable frameguard
 }));
 
 // Rate limiting
