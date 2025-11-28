@@ -5,7 +5,9 @@ exports.getLogin = (req, res) => {
   if (req.isAuthenticated()) {
     res.redirect('/');
   } else {
-    res.render('login', { csrfToken: req.csrfToken() });
+    // CSRF protection is disabled, so req.csrfToken() may not exist
+    const csrfToken = typeof req.csrfToken === 'function' ? req.csrfToken() : null;
+    res.render('login', { csrfToken });
   }
 };
 
