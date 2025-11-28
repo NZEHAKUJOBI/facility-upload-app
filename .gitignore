@@ -1,18 +1,44 @@
-node_modules/
-uploads/*
-logs/
-.env
+# Development dependencies (rebuilt on server)
+# node_modules/ - Keep for production builds
+
+# Environment files (server will use own .env)
 .env.local
 .env.*.local
-*.log
+
+# Log files (keep for server diagnostics)
+# *.log - Keep logs for server monitoring
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# OS files
 .DS_Store
+Thumbs.db
+
+# IDE/Editor files
 .idea/
 .vscode/
 *.swp
 *.swo
+*.sublime-project
+*.sublime-workspace
+
+# Build artifacts (rebuild on server)
 dist/
 build/
 .cache/
+
+# Test coverage
+coverage/
+
+# Temporary files
+.tmp/
+temp/
+
+# Dependencies (keep node_modules for server)
+node_modules/ - KEEP for production
+
+# KEEP FOR SERVER:
+# uploads/ - File storage
+# logs/ - Application logs
+# .env - Server configuration
