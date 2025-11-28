@@ -200,6 +200,19 @@ app.use(helmet({
     maxAge: 0, // Set to 0 to clear any cached HSTS on development
     includeSubDomains: false,
     preload: false
+  },
+  // Disable COOP/COEP headers for HTTP (only safe on HTTPS)
+  crossOriginOpenerPolicy: false,
+  crossOriginEmbedderPolicy: false,
+  // Relax CSP for form submissions on non-https
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      formAction: ["'self'", "http://localhost:3000", "http://127.0.0.1:3000"]
+    }
   }
 }));
 

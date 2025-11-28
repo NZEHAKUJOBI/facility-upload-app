@@ -3792,3 +3792,23 @@
 {"timestamp":"2025-11-28T12:16:20.446Z","level":"INFO","message":"HTTP 200","data":{"method":"GET","path":"/health","statusCode":200,"duration":"1ms","ip":"::1","userId":"anonymous"}}
 {"timestamp":"2025-11-28T12:16:50.528Z","level":"INFO","message":"HTTP 200","data":{"method":"GET","path":"/health","statusCode":200,"duration":"0ms","ip":"::1","userId":"anonymous"}}
 {"timestamp":"2025-11-28T12:17:20.626Z","level":"INFO","message":"HTTP 200","data":{"method":"GET","path":"/health","statusCode":200,"duration":"1ms","ip":"::1","userId":"anonymous"}}
+{"timestamp":"2025-11-28T12:17:50.723Z","level":"INFO","message":"HTTP 200","data":{"method":"GET","path":"/health","statusCode":200,"duration":"1ms","ip":"::1","userId":"anonymous"}}
+{"timestamp":"2025-11-28T12:18:20.823Z","level":"INFO","message":"HTTP 200","data":{"method":"GET","path":"/health","statusCode":200,"duration":"1ms","ip":"::1","userId":"anonymous"}}
+{"timestamp":"2025-11-28T12:18:50.903Z","level":"INFO","message":"HTTP 200","data":{"method":"GET","path":"/health","statusCode":200,"duration":"1ms","ip":"::1","userId":"anonymous"}}
+{"timestamp":"2025-11-28T12:19:20.982Z","level":"INFO","message":"HTTP 200","data":{"method":"GET","path":"/health","statusCode":200,"duration":"1ms","ip":"::1","userId":"anonymous"}}
+{"timestamp":"2025-11-28T12:19:51.104Z","level":"INFO","message":"HTTP 200","data":{"method":"GET","path":"/health","statusCode":200,"duration":"1ms","ip":"::1","userId":"anonymous"}}
+{"timestamp":"2025-11-28T12:20:21.197Z","level":"INFO","message":"HTTP 200","data":{"method":"GET","path":"/health","statusCode":200,"duration":"0ms","ip":"::1","userId":"anonymous"}}
+{"timestamp":"2025-11-28T12:20:51.301Z","level":"INFO","message":"HTTP 200","data":{"method":"GET","path":"/health","statusCode":200,"duration":"1ms","ip":"::1","userId":"anonymous"}}
+{"timestamp":"2025-11-28T12:21:06.776Z","level":"INFO","message":"SIGTERM received, shutting down gracefully"}
+{"timestamp":"2025-11-28T12:21:06.781Z","level":"INFO","message":"Server closed"}
+{"timestamp":"2025-11-28T12:21:08.329Z","level":"INFO","message":"Server running in development mode on port 3000"}
+{"timestamp":"2025-11-28T12:21:08.332Z","level":"INFO","message":"Database: facilities_db at postgres:5432"}
+{"timestamp":"2025-11-28T12:21:13.026Z","level":"INFO","message":"HTTP 200","data":{"method":"GET","path":"/health","statusCode":200,"duration":"6ms","ip":"::1","userId":"anonymous"}}
+{"timestamp":"2025-11-28T12:21:43.133Z","level":"INFO","message":"HTTP 200","data":{"method":"GET","path":"/health","statusCode":200,"duration":"1ms","ip":"::1","userId":"anonymous"}}
+{"timestamp":"2025-11-28T12:22:13.227Z","level":"INFO","message":"HTTP 200","data":{"method":"GET","path":"/health","statusCode":200,"duration":"1ms","ip":"::1","userId":"anonymous"}}
+{"timestamp":"2025-11-28T12:22:43.334Z","level":"INFO","message":"HTTP 200","data":{"method":"GET","path":"/health","statusCode":200,"duration":"1ms","ip":"::1","userId":"anonymous"}}
+{"timestamp":"2025-11-28T12:23:13.438Z","level":"INFO","message":"HTTP 200","data":{"method":"GET","path":"/health","statusCode":200,"duration":"0ms","ip":"::1","userId":"anonymous"}}
+{"timestamp":"2025-11-28T12:23:43.553Z","level":"INFO","message":"HTTP 200","data":{"method":"GET","path":"/health","statusCode":200,"duration":"1ms","ip":"::1","userId":"anonymous"}}
+{"timestamp":"2025-11-28T12:24:13.665Z","level":"INFO","message":"HTTP 200","data":{"method":"GET","path":"/health","statusCode":200,"duration":"1ms","ip":"::1","userId":"anonymous"}}
+{"timestamp":"2025-11-28T12:24:24.868Z","level":"INFO","message":"SIGTERM received, shutting down gracefully"}
+{"timestamp":"2025-11-28T12:24:24.871Z","level":"INFO","message":"Server closed"}
