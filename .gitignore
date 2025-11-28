@@ -36,7 +36,7 @@ coverage/
 temp/
 
 # Dependencies (keep node_modules for server)
-node_modules/ - KEEP for production
+node_modules/ 
 
 # KEEP FOR SERVER:
 # uploads/ - File storage
